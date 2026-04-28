@@ -525,9 +525,9 @@
       1. Create a Google Sheet.
       2. Use Google Apps Script as a Web App.
       3. Copy your Web App URL.
-      4. Paste it below to replace https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec.
+      4. Paste it below to replace https://script.google.com/macros/s/AKfycbzH_qqrpi9ew7d4HpoQ_yfa0n7H-pk78XD98hc56_0nQbV6hBFV3kC86MVnqMIUyWT/exec.
     */
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzH_qqrpi9ew7d4HpoQ_yfa0n7H-pk78XD98hc56_0nQbV6hBFV3kC86MVnqMIUyWT/exec";
 
     let currentOrder = [];
     let shuffledCards = [];
@@ -706,7 +706,7 @@
       const className = document.getElementById("className").value.trim();
       const studentName = document.getElementById("studentName").value.trim();
 
-      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec") {
+      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzH_qqrpi9ew7d4HpoQ_yfa0n7H-pk78XD98hc56_0nQbV6hBFV3kC86MVnqMIUyWT/exec") {
         console.log("Google Script URL is not set yet. Result was not sent.");
         return;
       }
