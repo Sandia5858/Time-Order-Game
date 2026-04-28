@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Order Game: Time Expressions</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 0 20px, transparent 21px),
+        radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.7) 0 28px, transparent 29px),
+        radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.7) 0 24px, transparent 25px),
+        linear-gradient(135deg, #fff1c1 0%, #ffd6e8 50%, #c7f0ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "⭐ ☁️ 🌈 ⏰ ⭐ ☁️ 🌈 ⏰";
+      position: fixed;
+      top: 18px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 28px;
+      opacity: 0.55;
+      letter-spacing: 18px;
+      pointer-events: none;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 28px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+      max-width: 920px;
+      width: 100%;
+      padding: 36px;
+      border: 6px solid rgba(255, 255, 255, 0.7);
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .header h1 {
+      color: #5b6ee1;
+      font-size: 2.25em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #555;
+      font-size: 1.18em;
+      font-weight: 600;
+    }
+
+    .input-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.05em;
+    }
+
+    .input-group input {
+      padding: 14px;
+      border: 3px solid #d8dcff;
+      border-radius: 16px;
+      font-size: 1.05em;
+      transition: 0.25s;
+      background: #fbfcff;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #7c8cff;
+      box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.16);
+    }
+
+    .game-section {
+      display: none;
+    }
+
+    .game-section.active {
+      display: block;
+    }
+
+    .instructions {
+      background: #fff9d8;
+      padding: 18px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      border-left: 8px solid #ffbd59;
+      line-height: 1.55;
+      color: #3c3c3c;
+      font-size: 1.03em;
+    }
+
+    .user-info {
+      background: #e6f7ff;
+      padding: 15px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      font-size: 1.08em;
+      text-align: center;
+      color: #1976d2;
+      font-weight: 700;
+      border: 2px solid #b8e7ff;
+    }
+
+    .section-title {
+      margin: 14px 0 12px;
+      color: #444;
+      font-weight: 800;
+      font-size: 1.05em;
+    }
+
+    .cards-container {
+      background: #fff7fb;
+      border-radius: 20px;
+      padding: 22px;
+      min-height: 120px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+      border: 3px dashed #ffb6d5;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #ffb6d5 0%, #ffd36e 100%);
+      color: #343434;
+      padding: 18px 14px;
+      border-radius: 22px;
+      text-align: center;
+      font-size: 1.18em;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.16s, box-shadow 0.16s, opacity 0.16s;
+      box-shadow: 0 6px 14px rgba(255, 138, 178, 0.32);
+      border: 3px solid #fff;
+    }
+
+    .card:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 10px 20px rgba(255, 138, 178, 0.4);
+    }
+
+    .card.selected {
+      opacity: 0.35;
+      transform: scale(0.97);
+      pointer-events: none;
+    }
+
+    .ordered-list {
+      background: #f7fbff;
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 340px;
+      border: 3px solid #b8e7ff;
+      margin-bottom: 18px;
+    }
+
+    .ordered-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 16px;
+      border: 2px dashed #cfd8dc;
+      min-height: 58px;
+      font-size: 1.06em;
+      color: #777;
+      transition: 0.2s;
+    }
+
+    .ordered-item.filled {
+      background: #e9f0ff;
+      border: 2px solid #7c8cff;
+      color: #333;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .ordered-number {
+      background: #7c8cff;
+      color: white;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .ordered-text {
+      flex: 1;
+    }
+
+    .remove-note {
+      font-size: 0.85em;
+      color: #777;
+      font-weight: 600;
+      margin-left: 12px;
+    }
+
+    .feedback {
+      text-align: center;
+      font-size: 1.18em;
+      font-weight: 800;
+      padding: 15px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.perfect {
+      background: #d8f7d8;
+      color: #2e7d32;
+    }
+
+    .feedback.good {
+      background: #fff4bf;
+      color: #b46a00;
+    }
+
+    .feedback.needs-work {
+      background: #ffd9cf;
+      color: #c74420;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      padding: 15px 24px;
+      font-size: 1.1em;
+      font-weight: 800;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: 0.22s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #6f7cff 0%, #a66cff 100%);
+      color: white;
+      width: 100%;
+      box-shadow: 0 8px 18px rgba(111, 124, 255, 0.28);
+    }
+
+    .btn-submit {
+      background: #49b86f;
+      color: white;
+      box-shadow: 0 8px 18px rgba(73, 184, 111, 0.25);
+    }
+
+    .btn-reset {
+      background: #ff9e43;
+      color: white;
+      box-shadow: 0 8px 18px rgba(255, 158, 67, 0.25);
+    }
+
+    .results {
+      display: none;
+      text-align: center;
+      background: linear-gradient(135deg, #ff9acb 0%, #8ed8ff 100%);
+      padding: 34px;
+      border-radius: 24px;
+      color: white;
+      border: 4px solid #fff;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h2 {
+      font-size: 2.2em;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+    }
+
+    .score-display {
+      font-size: 2.8em;
+      font-weight: 900;
+      margin: 16px 0;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .results-table {
+      background: white;
+      color: #333;
+      border-radius: 18px;
+      padding: 16px;
+      margin: 20px 0;
+      text-align: left;
+      overflow-x: auto;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+      font-size: 1em;
+    }
+
+    .result-row.header {
+      font-weight: 900;
+      background: #f5f7ff;
+      border-radius: 12px;
+      border-bottom: none;
+      color: #444;
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+    }
+
+    .check-mark {
+      font-size: 1.8em;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .check-mark.correct {
+      color: #35a853;
+    }
+
+    .check-mark.incorrect {
+      color: #e53935;
+    }
+
+    .btn-restart {
+      background: white;
+      color: #f05f9a;
+      margin-top: 10px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(255, 255, 255, 0.2);
+    }
+
+    .small-tip {
+      text-align: center;
+      color: #666;
+      font-size: 0.95em;
+      margin-top: -8px;
+      margin-bottom: 14px;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .pop {
+      animation: pop 0.28s ease;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+        align-items: flex-start;
+      }
+
+      body::before {
+        font-size: 20px;
+        letter-spacing: 8px;
+      }
+
+      .container {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .header h1 {
+        font-size: 1.65em;
+      }
+
+      .input-section {
+        grid-template-columns: 1fr;
+      }
+
+      .cards-container {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+
+      .result-row {
+        grid-template-columns: 50px 1fr 1fr;
+        gap: 8px;
+        font-size: 0.88em;
+        padding: 10px 6px;
+      }
+
+      .score-display {
+        font-size: 2.2em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⏰ Time Order Game</h1>
+      <p>Time Expressions</p>
+    </div>
+
+    <div class="input-section" id="inputSection">
+      <div class="input-group">
+        <label for="className">Class / 班級</label>
+        <input type="text" id="className" placeholder="e.g., 501" />
+      </div>
+      <div class="input-group">
+        <label for="studentName">English Name / 英文名字</label>
+        <input type="text" id="studentName" placeholder="e.g., Willie" />
+      </div>
+    </div>
+
+    <button class="btn-start" id="startBtn" onclick="startGame()">Start Game / 開始遊戲</button>
+
+    <div class="game-section" id="gameSection">
+      <div class="user-info" id="userInfo"></div>
+
+      <div class="instructions">
+        <p>📝 <strong>Instructions:</strong> Click the time expressions in chronological order, from earliest to latest.</p>
+        <p>📝 <strong>說明：</strong>請依照發生先後順序，從「最早」到「現在」，點選時間單字並完成排序。</p>
+      </div>
+
+      <p class="section-title">Available Words / 可選單字</p>
+      <div class="cards-container" id="cardsContainer"></div>
+
+      <p class="section-title">Your Order / 你的排序</p>
+      <p class="small-tip">點錯了嗎？Click a selected answer below to remove it. / 點下方已選答案可以取消。</p>
+      <div class="ordered-list" id="orderedList"></div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="button-group">
+        <button class="btn-submit" onclick="submitAnswer()">Check Answers / 對答案</button>
+        <button class="btn-reset" onclick="resetGame()">Reset / 重新開始</button>
+      </div>
+    </div>
+
+    <div class="results" id="results">
+      <h2 id="resultTitle">Results / 結果</h2>
+      <div class="score-display" id="scoreDisplay"></div>
+      <div class="results-table" id="resultsTable"></div>
+      <button class="btn-restart" onclick="restartGame()">Play Again / 再玩一次</button>
+    </div>
+  </div>
+
+  <script>
+    const timeExpressions = [
+      "two days ago",
+      "last night",
+      "yesterday morning",
+      "two hours ago",
+      "an hour ago",
+      "today (now)"
+    ];
+
+    const correctOrder = [
+      "two days ago",
+      "yesterday morning",
+      "last night",
+      "two hours ago",
+      "an hour ago",
+      "today (now)"
+    ];
+
+    /*
+      ✅ Teacher Setup / 老師設定
+      1. Create a Google Sheet.
+      2. Use Google Apps Script as a Web App.
+      3. Copy your Web App URL.
+      4. Paste it below to replace https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec.
+    */
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec";
+
+    let currentOrder = [];
+    let shuffledCards = [];
+
+    // Web Audio API sound: works without external audio files.
+    let audioContext;
+
+    function playPerfectSound() {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+
+        // Stronger celebration sound: rising fanfare
+        const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51]; // C5, E5, G5, C6, E6
+        notes.forEach((frequency, index) => {
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+
+          oscillator.type = "triangle";
+          oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.11);
+
+          gain.gain.setValueAtTime(0.0001, audioContext.currentTime + index * 0.11);
+          gain.gain.exponentialRampToValueAtTime(0.42, audioContext.currentTime + index * 0.11 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + index * 0.11 + 0.24);
+
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+
+          oscillator.start(audioContext.currentTime + index * 0.11);
+          oscillator.stop(audioContext.currentTime + index * 0.11 + 0.26);
+        });
+      } catch (error) {
+        console.log("Audio could not be played:", error);
+      }
+    }
+
+    function playWrongSound() {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+
+        // Gentle error sound: two low notes
+        const notes = [220, 164.81]; // A3, E3
+        notes.forEach((frequency, index) => {
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+
+          oscillator.type = "sawtooth";
+          oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.18);
+
+          gain.gain.setValueAtTime(0.0001, audioContext.currentTime + index * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.22, audioContext.currentTime + index * 0.18 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + index * 0.18 + 0.22);
+
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+
+          oscillator.start(audioContext.currentTime + index * 0.18);
+          oscillator.stop(audioContext.currentTime + index * 0.18 + 0.24);
+        });
+      } catch (error) {
+        console.log("Audio could not be played:", error);
+      }
+    }
+
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function startGame() {
+      const className = document.getElementById("className").value.trim();
+      const studentName = document.getElementById("studentName").value.trim();
+
+      if (!className || !studentName) {
+        alert("Please enter both Class and English Name. / 請輸入班級和英文名字。");
+        return;
+      }
+
+      document.getElementById("inputSection").style.display = "none";
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("gameSection").classList.add("active");
+      document.getElementById("results").classList.remove("show");
+
+      document.getElementById("userInfo").textContent =
+        `👤 Class: ${className} | Name: ${studentName}`;
+
+      shuffledCards = shuffleArray(timeExpressions);
+      currentOrder = [];
+
+      renderCards();
+      renderOrderedList();
+      hideFeedback();
+    }
+
+    function renderCards() {
+      const container = document.getElementById("cardsContainer");
+      container.innerHTML = "";
+
+      shuffledCards.forEach((expression) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.textContent = expression;
+
+        if (currentOrder.includes(expression)) {
+          card.classList.add("selected");
+          card.textContent = `✓ ${expression}`;
+        }
+
+        card.addEventListener("click", () => {
+          if (currentOrder.includes(expression)) return;
+
+          if (currentOrder.length >= correctOrder.length) {
+            alert("You have already selected all 6 time expressions. / 你已經選完6個時間單字。");
+            return;
+          }
+
+          currentOrder.push(expression);
+          renderCards();
+          renderOrderedList();
+
+          const orderedList = document.getElementById("orderedList");
+          orderedList.classList.remove("pop");
+          void orderedList.offsetWidth;
+          orderedList.classList.add("pop");
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderOrderedList() {
+      const list = document.getElementById("orderedList");
+      list.innerHTML = "";
+
+      for (let i = 0; i < correctOrder.length; i++) {
+        const item = document.createElement("div");
+        item.className = "ordered-item";
+
+        const number = document.createElement("span");
+        number.className = "ordered-number";
+        number.textContent = i + 1;
+
+        const text = document.createElement("span");
+        text.className = "ordered-text";
+
+        const note = document.createElement("span");
+        note.className = "remove-note";
+
+        if (currentOrder[i]) {
+          item.classList.add("filled");
+          text.textContent = currentOrder[i];
+          note.textContent = "click to remove";
+
+          item.addEventListener("click", () => {
+            currentOrder.splice(i, 1);
+            renderCards();
+            renderOrderedList();
+            hideFeedback();
+          });
+        } else {
+          text.textContent = "Please choose a word.";
+          note.textContent = "";
+        }
+
+        item.appendChild(number);
+        item.appendChild(text);
+        item.appendChild(note);
+        list.appendChild(item);
+      }
+    }
+
+    function sendResultToGoogleSheet(correct, percentage) {
+      const className = document.getElementById("className").value.trim();
+      const studentName = document.getElementById("studentName").value.trim();
+
+      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzrZ9vU6S_wIwAYAId1XmBakn9HrUX6p-RqfMhw-sCBbqHAiH7zdoQsimqfT_jY9VMC/exec") {
+        console.log("Google Script URL is not set yet. Result was not sent.");
+        return;
+      }
+
+      const payload = {
+        className: className,
+        studentName: studentName,
+        score: `${correct}/6`,
+        percentage: `${percentage}%`,
+        answerOrder: currentOrder.join(" → "),
+        submittedAt: new Date().toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })
+      };
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        console.log("Result sent to Google Sheet.");
+      })
+      .catch((error) => {
+        console.log("Could not send result:", error);
+      });
+    }
+
+    function submitAnswer() {
+      if (currentOrder.length !== correctOrder.length) {
+        alert("Please choose all 6 time expressions. / 請選完所有6個時間單字。");
+        return;
+      }
+
+      let correct = 0;
+      const results = [];
+
+      for (let i = 0; i < correctOrder.length; i++) {
+        const isCorrect = currentOrder[i] === correctOrder[i];
+        if (isCorrect) correct++;
+
+        results.push({
+          position: i + 1,
+          yourAnswer: currentOrder[i],
+          correctAnswer: correctOrder[i],
+          isCorrect
+        });
+      }
+
+      const percentage = Math.round((correct / correctOrder.length) * 100);
+      showFeedback(correct);
+
+      if (correct === correctOrder.length) {
+        playPerfectSound();
+      } else {
+        playWrongSound();
+      }
+
+      // Send class, name, score, answer order, and time to Google Sheet.
+      sendResultToGoogleSheet(correct, percentage);
+
+      setTimeout(() => {
+        showResults(results, correct, percentage);
+      }, 650);
+    }
+
+    function showFeedback(correct) {
+      const feedback = document.getElementById("feedback");
+      feedback.className = "feedback show";
+
+      if (correct === correctOrder.length) {
+        feedback.classList.add("perfect");
+        feedback.textContent = "🎉 Perfect! All correct! / 完美！全部正確！";
+      } else if (correct >= 4) {
+        feedback.classList.add("good");
+        feedback.textContent = `⭐ Good! ${correct}/6 correct. / 不錯！${correct}/6 正確。`;
+      } else {
+        feedback.classList.add("needs-work");
+        feedback.textContent = `💪 Keep trying! ${correct}/6 correct. / 加油！${correct}/6 正確。`;
+      }
+    }
+
+    function hideFeedback() {
+      const feedback = document.getElementById("feedback");
+      feedback.className = "feedback";
+      feedback.textContent = "";
+    }
+
+    function showResults(results, correct, percentage) {
+      document.getElementById("gameSection").classList.remove("active");
+      document.getElementById("results").classList.add("show");
+
+      document.getElementById("scoreDisplay").textContent = `${correct}/6 (${percentage}%)`;
+
+      let resultsHTML = `
+        <div class="result-row header">
+          <div>#</div>
+          <div>Your Answer</div>
+          <div>Correct Answer</div>
+        </div>
+      `;
+
+      results.forEach((result) => {
+        const checkMark = result.isCorrect ? "✓" : "✗";
+        const checkClass = result.isCorrect ? "correct" : "incorrect";
+
+        resultsHTML += `
+          <div class="result-row">
+            <div class="check-mark ${checkClass}">${checkMark}</div>
+            <div>${result.yourAnswer}</div>
+            <div><strong>${result.correctAnswer}</strong></div>
+          </div>
+        `;
+      });
+
+      document.getElementById("resultsTable").innerHTML = resultsHTML;
+    }
+
+    function resetGame() {
+      currentOrder = [];
+      shuffledCards = shuffleArray(timeExpressions);
+      renderCards();
+      renderOrderedList();
+      hideFeedback();
+    }
+
+    function restartGame() {
+      document.getElementById("className").value = "";
+      document.getElementById("studentName").value = "";
+      document.getElementById("inputSection").style.display = "grid";
+      document.getElementById("startBtn").style.display = "block";
+      document.getElementById("gameSection").classList.remove("active");
+      document.getElementById("results").classList.remove("show");
+      currentOrder = [];
+      shuffledCards = [];
+      hideFeedback();
+    }
+  </script>
+</body>
+</html>
